@@ -1,22 +1,24 @@
-# Step 1: Use Bun for installing workspace dependencies
-FROM oven/bun:1.1.13 as builder
+# Step 1: Use Node to install and build
+FROM node:20 as builder
 
 WORKDIR /app
 COPY . .
-RUN bun install
 
-# Step 2: Build the frontend app
+# Install all workspace dependencies (Turbo monorepo)
+RUN npm install
+
+# Build the frontend app
 WORKDIR /app/apps/web
-RUN bun run build
+RUN npm run build
 
-# Step 3: Use Node to serve the Next.js app
+# Step 2: Serve using Node image
 FROM node:20
 
 WORKDIR /app
-COPY --from=builder /app /app
+COPY --from=builder /app .
 
 WORKDIR /app/apps/web
-RUN bun install --no-save  # needed for Next.js runtime
+RUN npm install --omit=dev
 
 EXPOSE 3000
-CMD ["bun", "start"]
+CMD ["npm", "start"]
