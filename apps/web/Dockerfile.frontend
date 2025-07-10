@@ -1,0 +1,18 @@
+# Install all deps using Bun (monorepo aware)
+FROM oven/bun:1.1.13 as builder
+
+WORKDIR /app
+COPY . .
+RUN bun install
+
+# Use Node.js to build and serve Next.js
+FROM node:20
+
+WORKDIR /app
+COPY --from=builder /app /app
+
+WORKDIR /app/apps/web
+RUN npm run build
+
+EXPOSE 3000
+CMD ["npm", "start"]
