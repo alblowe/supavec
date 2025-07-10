@@ -1,34 +1,19 @@
-# Step 1: Build stage
-FROM node:20 as builder
-
-WORKDIR /app
-COPY . .
-
-# Setup PNPM
-RUN corepack enable && corepack prepare pnpm@8.10.5 --activate
-
-# Create workspace file if missing (important for monorepo)
-COPY pnpm-workspace.yaml ./
-
-# Install all dependencies at root (monorepo-aware)
-RUN pnpm install
-
-# Build the frontend (from inside the monorepo)
-RUN pnpm --filter=@supavec/web build
-
-# Step 2: Production image
 FROM node:20
 
 WORKDIR /app
 
-# Enable PNPM again here (or global install if needed)
+COPY . .
+
+# Enable pnpm and install it
 RUN corepack enable && corepack prepare pnpm@8.10.5 --activate
 
-# Copy only what's needed
-COPY --from=builder /app/apps/web ./
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./
-COPY --from=builder /app/pnpm-lock.yaml ./
+# Install all dependencies
+RUN pnpm install
 
+# Build the frontend
+WORKDIR /app/apps/web
+RUN pnpm build
+
+# Start server
 EXPOSE 3000
 CMD ["pnpm", "start"]
