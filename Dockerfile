@@ -1,20 +1,22 @@
-# Use Bun (has native workspace support)
-FROM oven/bun:1.1.13
+FROM node:20
 
+# Set working directory
 WORKDIR /app
 
-# Copy the whole monorepo
+# Copy monorepo code
 COPY . .
 
-# Install all workspace deps (at the root)
-RUN bun install
+# Install all dependencies (workspace-aware)
+RUN npm install
 
-# Build the frontend app inside the monorepo
+# Navigate to frontend app
 WORKDIR /app/apps/web
-RUN bun run build
 
-# Expose frontend port
+# Build the frontend
+RUN npm run build
+
+# Expose Next.js default port
 EXPOSE 3000
 
 # Start the app
-CMD ["bun", "run", "start"]
+CMD ["npm", "start"]
