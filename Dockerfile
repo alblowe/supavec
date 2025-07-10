@@ -1,21 +1,29 @@
-# Base image with Node.js and Bun
-FROM oven/bun:1.1.13
+# ---- Stage 1: Build with Node ----
+FROM node:20 AS builder
 
-# Set working directory inside the container
 WORKDIR /app
 
-# Copy everything to the container
+# Copy everything
 COPY . .
 
-# Navigate to the frontend directory
+# Move into the frontend app
 WORKDIR /app/apps/web
 
-# Install dependencies and build
-RUN bun install
-RUN bun run build
+# Install deps and build
+RUN npm install
+RUN npm run build
 
-# Expose port (change if needed)
+# ---- Stage 2: Serve with Bun ----
+FROM oven/bun:1.1.13
+
+WORKDIR /app
+
+# Copy only the built app from the previous stage
+COPY --from=builder /app/apps/web /app
+
+# Install only what's needed to run (optional)
+RUN bun install --production
+
 EXPOSE 3000
 
-# Run the app
 CMD ["bun", "run", "start"]
