@@ -1,0 +1,11 @@
+# Bun runtime handles backend natively
+FROM oven/bun:1.1.13
+
+WORKDIR /app
+COPY . .
+
+RUN bun install
+WORKDIR /app/packages/api
+
+EXPOSE 4000
+CMD ["bun", "run", "start"]
