@@ -1,18 +1,22 @@
-# Install all deps using Bun (monorepo aware)
+# Step 1: Use Bun for installing workspace dependencies
 FROM oven/bun:1.1.13 as builder
 
 WORKDIR /app
 COPY . .
 RUN bun install
 
-# Use Node.js to build and serve Next.js
+# Step 2: Build the frontend app
+WORKDIR /app/apps/web
+RUN bun run build
+
+# Step 3: Use Node to serve the Next.js app
 FROM node:20
 
 WORKDIR /app
 COPY --from=builder /app /app
 
 WORKDIR /app/apps/web
-RUN npm run build
+RUN bun install --no-save  # needed for Next.js runtime
 
 EXPOSE 3000
-CMD ["npm", "start"]
+CMD ["bun", "start"]
