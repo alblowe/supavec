@@ -1,24 +1,27 @@
-# Step 1: Use Node to install and build
+# Step 1: Use Node with pnpm via Corepack
 FROM node:20 as builder
 
 WORKDIR /app
 COPY . .
 
-# Install all workspace dependencies (Turbo monorepo)
-RUN npm install
+# Enable Corepack and install pnpm
+RUN corepack enable && corepack prepare pnpm@8.10.5 --activate
 
-# Build the frontend app
+# Install dependencies (Turbo monorepo)
+RUN pnpm install
+
+# Build the frontend
 WORKDIR /app/apps/web
-RUN npm run build
+RUN pnpm build
 
-# Step 2: Serve using Node image
+# Step 2: Use lightweight Node image to serve
 FROM node:20
 
 WORKDIR /app
 COPY --from=builder /app .
 
 WORKDIR /app/apps/web
-RUN npm install --omit=dev
+RUN corepack enable && corepack prepare pnpm@8.10.5 --activate && pnpm install --prod
 
 EXPOSE 3000
-CMD ["npm", "start"]
+CMD ["pnpm", "start"]
