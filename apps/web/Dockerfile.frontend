@@ -1,21 +1,13 @@
 FROM node:20
 
-# 1. Set working directory
 WORKDIR /app
 
-# 2. Copy everything (monorepo)
 COPY . .
 
-# 3. Enable corepack and install pnpm
 RUN corepack enable && corepack prepare pnpm@8.10.5 --activate
+RUN pnpm install --frozen-lockfile
+RUN pnpm --filter @supavec/web... install
+RUN pnpm --filter @supavec/web build
 
-# 4. Install all monorepo dependencies (including workspaces)
-RUN pnpm install
-
-# 5. Build the web app
-WORKDIR /app/apps/web
-RUN pnpm build
-
-# 6. Expose port & start the app
 EXPOSE 3000
-CMD ["pnpm", "start"]
+CMD ["pnpm", "--filter", "@supavec/web", "start"]
